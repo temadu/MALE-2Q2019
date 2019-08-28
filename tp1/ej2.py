@@ -10,21 +10,21 @@ with open('./data/PreferenciasBritanicos.csv', 'r') as csvFile:
 csvFile.close()
 # print(rows)
 
-pE = 7/13
-pI = 6/13
+pE = 8./15
+pI = 7./15
 
-probs = [0,0,0,0,0]
-probsE = [0,0,0,0,0]
-probsI = [0,0,0,0,0]
-amount = len(rows) - 1
+probsE = [1./9, 1./9, 1./9, 1./9, 1./9]
+probsI = [1./8, 1./8, 1./8, 1./8, 1./8]
+amount = len(rows) + 1
+probs = [1./amount,1./amount,1./amount,1./amount,1./amount]
 for i in range(1, len(rows)):
     for j in range(0, len(rows[0])-1):
         if rows[i][j] == '1':
             probs[j] += 1/amount
             if rows[i][5] == "E":
-                probsE[j] += 1/7
+                probsE[j] += 1./9
             elif rows[i][5] == "I":
-                probsI[j] += 1/6
+                probsI[j] += 1./8
 
 probToTest = [1, 0, 1, 1, 0]
 # print(probsE)
@@ -41,8 +41,8 @@ for i in range(0, 5):
 cacaE = numpy.prod(probsE) * pE
 cacaI = numpy.prod(probsI) * pI
 
-# print(cacaE)
-# print(cacaI)
+print(cacaE)
+print(cacaI)
 if max(cacaE, cacaI) == cacaE:
     print("ENGLISH")
 else:
