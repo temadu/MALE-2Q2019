@@ -302,7 +302,7 @@ testData = data[math.floor(len(data)*trainPercentage):]
 # train
 print("START TRAINING: ", len(trainData))
 for i, t in enumerate(trainData):
-    print(i, end="\r")
+    # print(i, end="\r")
     row = t.split("\t")
     title = row[1]
     className = row[3][:-1]
@@ -322,18 +322,18 @@ confusionMatrix = [[0 for x in range(len(allClasses))]
 print("START TESTING: ", len(testData))
 probs = {}
 for i, t in enumerate(testData):
-    print(i, end="\r")
+    # print(i, end="\r")
     row = t.split("\t")
     title = row[1]
     realClassName = row[3][:-1]
     # print("%s: %s " % (realClassName, title))
     words = getWordsInLowerCase(title)  # Separo en palabras
     for className in classes:
-        numWords = sum(classes[className].values()) #Cuantas palabras distintas hay
+        numWords = sum(classes[className].values()) #Cuantas palabras totales hay en la clase
         logSum = 0
         for word in words:
             wordFreq = classes[className][word] + 1
-            prob = Fraction(wordFreq, numWords)
+            prob = Fraction(wordFreq, numWords+len(allClasses))
             logSum += math.log(prob)        #Uso log y sumo xq usa probabilidades muy bajas y si multiplico se va todo al demonio x los floating points
         # probs[className] = logSum
         probs[className] = logSum
