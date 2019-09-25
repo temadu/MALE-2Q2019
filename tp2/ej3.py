@@ -39,7 +39,7 @@ def loadDataset(filename, split, trainingSet=[], testSet=[]):
           highestWordCount = float(row[2])
         # tupl.append(1 if row[3] == "positive" else 0)
         tupl.append(1 if row[3] == "positive" else (0 if row[3] == "negative" else 0.5))
-        tupl.append(float(row[6])/4) 
+        tupl.append(float(row[6])/8+0.5) 
         tupl.append(float(row[5]))
         dataset.append(tupl)
       
@@ -85,8 +85,12 @@ def getResponse(distances,  k):
 
 def getWeightedResponse(distances, k):
   neighbors = []
-  for x in range(k):
-      neighbors.append(distances[x])
+  if(k == 0):
+    for x in range(len(distances)):
+        neighbors.append(distances[x])
+  else:
+    for x in range(k):
+        neighbors.append(distances[x])
   classVotes = {}
   for x in range(len(neighbors)):
     response = neighbors[x][0][-1]
@@ -194,7 +198,7 @@ def prom():
 def main():
   trainingPercentage = 0.7
   k = 5
-  weighted = False
+  weighted = True
   parta = True
 
   if(parta):
