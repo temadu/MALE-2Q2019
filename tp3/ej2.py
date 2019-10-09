@@ -64,7 +64,7 @@ def loadDataset(filename, split, trainingSet=[], testSet=[]):
         testSet[1].append(row.pop(-1))
 
 
-def calculateConfusionMatrix(testValues, predictions, posibleValues):
+def calculateConfusionMatrix(testValues, predictions, posibleValues, printit=True):
   allClasses = {}
   for i, c in enumerate(posibleValues):
     allClasses[c] = i
@@ -78,16 +78,17 @@ def calculateConfusionMatrix(testValues, predictions, posibleValues):
       fp += 1
     if(predictions[i] != 1 and testValues[i] == 1):
       fn += 1
-    confusionMatrix[allClasses[predictions[i]]
-                    ][allClasses[testValues[i]]] += 1
-  print("CONFUSION MATRIX")
-  print(pd.DataFrame(confusionMatrix, columns=posibleValues, index=posibleValues))
-  print()
+    confusionMatrix[allClasses[testValues[i]]
+                    ][allClasses[predictions[i]]] += 1
+  if(printit):
+    print("CONFUSION MATRIX")
+    print(pd.DataFrame(confusionMatrix, columns=posibleValues, index=posibleValues))
+    print()
 
-  calculateStatistics(posibleValues, confusionMatrix)
+  return calculateStatistics(posibleValues, confusionMatrix, printit)
 
 
-def calculateStatistics(posibleValues, confusionMatrix):
+def calculateStatistics(posibleValues, confusionMatrix, printit = True):
   allClasses = {}
   for i, c in enumerate(posibleValues):
     allClasses[c] = i
@@ -144,15 +145,100 @@ def calculateStatistics(posibleValues, confusionMatrix):
           2*evaluationMeasurements[i][0]+evaluationMeasurements[i][2]+evaluationMeasurements[i][3])
     except:
       evaluationMeasurements[i][8] = -1
+  if(printit):
+    print("EVALUATION MEASUREMENTS")
+    print(pd.DataFrame(evaluationMeasurements,
+                      columns=evaluationMeasurementsTitles, index=evaluationMeasurementsRowNames))
+    print()
 
-  print("EVALUATION MEASUREMENTS")
-  print(pd.DataFrame(evaluationMeasurements,
-                     columns=evaluationMeasurementsTitles, index=evaluationMeasurementsRowNames))
+  return evaluationMeasurements[0][4]
+
+def getBestConfig(trainingSet, testSet):
+  trainingData = np.matrix(trainingSet[0], dtype=np.float32)
+  trainingLabels = np.array(trainingSet[1])
+  testingData = np.matrix(testSet[0], dtype=np.float32)
+  bestAc = 0
+  bestC = 0
+  bestK = 0
+  for k in range(3):  # Linear, poly, rbf, sigmoid
+    print()
+    for c in np.arange(0.1, 10.2, 0.5):
+      accuracies = 0
+      # for i in range(10):
+      svm = cv.ml.SVM_create()
+      svm.setType(cv.ml.SVM_C_SVC)
+      svm.setKernel(k)
+      svm.setC(c)
+      svm.setDegree(4)
+      svm.setTermCriteria(
+          (cv.TERM_CRITERIA_EPS+cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
+      svm.train(trainingData, cv.ml.ROW_SAMPLE, trainingLabels)
+
+      # Predict
+      # testingLabels = np.array(testSet[1])
+
+      sv = svm.getUncompressedSupportVectors()
+      predictions = svm.predict(testingData)[1]
+      # Transform vertical nparray to list
+      predictions = list(predictions.transpose()[0])
+
+      accuracy = calculateConfusionMatrix(
+          testSet[1], predictions, [0, 1], False)
+      if(accuracy > bestAc):
+        bestAc = accuracy
+        bestC = c
+        bestK = k
+      if k == 0:
+        print('KERNEL: LINEAR, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
+      elif k == 1:
+        print('KERNEL: POLY, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
+      elif k == 2:
+        print('KERNEL: RBF, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
+
   print()
+  if bestK == 0:
+    print('BEST CONFIG: KERNEL: LINEAR, ' +
+          "C = " + str(bestC) + " -> Accuracy: "+str(bestAc))
+  elif bestK == 1:
+    print('BEST CONFIG: KERNEL: POLY, ' + "C = " +
+          str(bestC) + " -> Accuracy: "+str(bestAc))
+  elif bestK == 2:
+    print('BEST CONFIG: KERNEL: RBF, ' + "C = " +
+          str(bestC) + " -> Accuracy: "+str(bestAc))
 
+def trainOnce(trainingSet, testSet, c, k):
+  # Train the SVM
+  trainingData = np.matrix(trainingSet[0], dtype=np.float32)
+  trainingLabels = np.array(trainingSet[1])
+  testingData = np.matrix(testSet[0], dtype=np.float32)
+
+  svm = cv.ml.SVM_create()
+  svm.setType(cv.ml.SVM_C_SVC)
+  svm.setKernel(k)
+  svm.setC(c)
+  svm.setDegree(4)
+  svm.setTermCriteria(
+      (cv.TERM_CRITERIA_EPS+cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
+  svm.train(trainingData, cv.ml.ROW_SAMPLE, trainingLabels)
+
+  # Predict
+  # testingLabels = np.array(testSet[1])
+
+  sv = svm.getUncompressedSupportVectors()
+  predictions = svm.predict(testingData)[1]
+  # Transform vertical nparray to list
+  predictions = list(predictions.transpose()[0])
+
+  if k == 0:
+    print('KERNEL: LINEAR, ' + "C = " + str(c) )
+  elif k == 1:
+    print('KERNEL: POLY, ' + "C = " + str(c) )
+  elif k == 2:
+    print('KERNEL: RBF, ' + "C = " + str(c) )
+  accuracy = calculateConfusionMatrix(testSet[1], predictions, [0, 1], True)
 
 def main():
-  trainingPercentage = 0.4
+  trainingPercentage = 0.5
 
   trainingSet = []
   testSet = []
@@ -161,27 +247,10 @@ def main():
   print('Train set: ' + repr(len(trainingSet[0])))
   print('Test set: ' + repr(len(testSet[0])))
 
+  getBestConfig(trainingSet, testSet)
+  # trainOnce(trainingSet,testSet, 5.1, 2)
 
-  # Train the SVM
-  trainingData = np.matrix(trainingSet[0], dtype=np.float32)
-  trainingLabels = np.array(trainingSet[1])
 
-  svm = cv.ml.SVM_create()
-  svm.setType(cv.ml.SVM_C_SVC)
-  svm.setC(0.1)
-  svm.setKernel(cv.ml.SVM_LINEAR)
-  svm.setTermCriteria((cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
-  svm.train(trainingData, cv.ml.ROW_SAMPLE, trainingLabels)
-
-  # Predict
-  testingData = np.matrix(testSet[0], dtype=np.float32)
-  # testingLabels = np.array(testSet[1])
-
-  sv = svm.getUncompressedSupportVectors()
-  predictions = svm.predict(testingData)[1]
-  predictions = list(predictions.transpose()[0]) # Transform vertical nparray to list
   
-  calculateConfusionMatrix(testSet[1], predictions, [0, 1])
-
 
 main()
