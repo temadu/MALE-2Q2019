@@ -139,19 +139,38 @@ def calculateStatistics(posibleValues, confusionMatrix):
 
 
 def main():
-    cowSet = loadTrainingFile('data/images/vaca.jpg', 0)
-    skySet = loadTrainingFile('data/images/cielo.jpg', 1)
-    grassSet = loadTrainingFile('data/images/pasto.jpg', 2)
-
+    mode = False
     trainingSet = [[], []]
     testSet = [[], []]
-    trainingSet[0] = cowSet + skySet + grassSet
-    testSet[0] = loadTrainingFile('data/images/cow.jpg', -1)
-    testSet[1] = loadTestingFileLabels('data/images/cow16.bmp')
-    for row in trainingSet[0]:
-        trainingSet[1].append(row.pop(-1))
-    for row in testSet[0]:
-        row.pop(-1)
+
+    if mode:
+        cowSet = loadTrainingFile('data/images/vaca.jpg', 0)
+        skySet = loadTrainingFile('data/images/cielo.jpg', 1)
+        grassSet = loadTrainingFile('data/images/pasto.jpg', 2)
+
+        trainingSet[0] = cowSet + skySet + grassSet
+        testSet[0] = loadTrainingFile('data/images/cow.jpg', -1)
+        testSet[1] = loadTestingFileLabels('data/images/cow16.bmp')
+        for row in trainingSet[0]:
+            trainingSet[1].append(row.pop(-1))
+        for row in testSet[0]:
+            row.pop(-1)
+    else:
+        set = [[], []]
+        set[0] = loadTrainingFile('data/images/cow.jpg', -1)
+        set[1] = loadTestingFileLabels('data/images/cow16.bmp')
+        for row, label in zip(set[0], set[1]):
+            row[3] = label
+        split = 0.6
+        random.shuffle(set[0])
+        trainingSet[0].extend(set[0][:math.floor(len(set[0]) * split)])
+        testSet[0].extend(set[0][math.floor(len(set[0]) * split):])
+
+        for row in trainingSet[0]:
+            trainingSet[1].append(row.pop(-1))
+        for row in testSet[0]:
+            testSet[1].append(row.pop(-1))
+
 
     print('Train set: ' + repr(len(trainingSet[0])))
     print('Test set: ' + repr(len(testSet[0])))
@@ -160,23 +179,30 @@ def main():
     trainingData = np.matrix(trainingSet[0], dtype=np.float32)
     trainingLabels = np.array(trainingSet[1])
 
-    svm = cv.ml.SVM_create()
-    svm.setType(cv.ml.SVM_C_SVC)
-    svm.setC(0.1)
-    svm.setKernel(cv.ml.SVM_INTER)
-    svm.setTermCriteria((cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
-    svm.train(trainingData, cv.ml.ROW_SAMPLE, trainingLabels)
+    for a in range(5,6):
+        for c in [0.1, 0.5, 1, 5, 10]:
+            print(a)
+            print(c)
+            svm = cv.ml.SVM_create()
+            svm.setType(cv.ml.SVM_C_SVC)
+            svm.setC(c)
+            svm.setDegree(3)
+            svm.setGamma(1)
+            svm.setKernel(a)
+            svm.setTermCriteria((cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
+            svm.train(trainingData, cv.ml.ROW_SAMPLE, trainingLabels)
 
-    # Predict
-    testingData = np.matrix(testSet[0], dtype=np.float32)
-    # testingLabels = np.array(testSet[1])
+            # Predict
+            testingData = np.matrix(testSet[0], dtype=np.float32)
+            # testingLabels = np.array(testSet[1])
 
-    sv = svm.getUncompressedSupportVectors()
-    predictions = svm.predict(testingData)[1]
-    predictions = list(predictions.transpose()[0])  # Transform vertical nparray to list
+            sv = svm.getUncompressedSupportVectors()
+            predictions = svm.predict(testingData)[1]
+            predictions = list(predictions.transpose()[0])  # Transform vertical nparray to list
 
-    imageResult(predictions)
-    calculateConfusionMatrix(testSet[1], predictions, [0, 1, 2])
+            calculateConfusionMatrix(testSet[1], predictions, [0, 1, 2])
+            if not mode:
+                imageResult(predictions)
 
 
 main()
