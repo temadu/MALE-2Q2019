@@ -37,7 +37,7 @@ def loadDataset(filename, split, trainingSet=[], testSet=[]):
         tupl.append(float(row[1])) # dias sintiendose mal
         tupl.append(float(row[2]))  # colesterol
         tupl.append(int(row[3])) # sex 0 o 1 
-        tupl.append(int(row[5]))  # Tres arterias estrechadas
+        # tupl.append(int(row[5]))  # Tres arterias estrechadas
         tupl.append(int(row[4]))  # Una arteria estrechada (lo que busco)
         dataset.append(tupl)
       
@@ -160,7 +160,9 @@ def getBestConfig(trainingSet, testSet):
   bestAc = 0
   bestC = 0
   bestK = 0
-  for k in range(3):  # Linear, poly, rbf, sigmoid
+  for k in range(6):  # Linear, poly, rbf, nope,nope, inter
+    if(k == 3 or k == 4):
+      continue
     print()
     for c in np.arange(0.1, 10.2, 0.5):
       accuracies = 0
@@ -169,6 +171,7 @@ def getBestConfig(trainingSet, testSet):
       svm.setType(cv.ml.SVM_C_SVC)
       svm.setKernel(k)
       svm.setC(c)
+      svm.setGamma(1)
       svm.setDegree(4)
       svm.setTermCriteria(
           (cv.TERM_CRITERIA_EPS+cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
@@ -194,6 +197,8 @@ def getBestConfig(trainingSet, testSet):
         print('KERNEL: POLY, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
       elif k == 2:
         print('KERNEL: RBF, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
+      elif k == 5:
+        print('KERNEL: INTER, ' + "C = " + str(c) + " -> ac: "+str(accuracy))
 
   print()
   if bestK == 0:
@@ -204,6 +209,9 @@ def getBestConfig(trainingSet, testSet):
           str(bestC) + " -> Accuracy: "+str(bestAc))
   elif bestK == 2:
     print('BEST CONFIG: KERNEL: RBF, ' + "C = " +
+          str(bestC) + " -> Accuracy: "+str(bestAc))
+  elif bestK == 5:
+    print('BEST CONFIG: KERNEL: INTER, ' + "C = " +
           str(bestC) + " -> Accuracy: "+str(bestAc))
 
 def trainOnce(trainingSet, testSet, c, k):
@@ -216,6 +224,7 @@ def trainOnce(trainingSet, testSet, c, k):
   svm.setType(cv.ml.SVM_C_SVC)
   svm.setKernel(k)
   svm.setC(c)
+  svm.setGamma(1)
   svm.setDegree(4)
   svm.setTermCriteria(
       (cv.TERM_CRITERIA_EPS+cv.TERM_CRITERIA_MAX_ITER, 1000, 1e-6))
@@ -234,6 +243,8 @@ def trainOnce(trainingSet, testSet, c, k):
   elif k == 1:
     print('KERNEL: POLY, ' + "C = " + str(c) )
   elif k == 2:
+    print('KERNEL: RBF, ' + "C = " + str(c) )
+  elif k == 5:
     print('KERNEL: RBF, ' + "C = " + str(c) )
   accuracy = calculateConfusionMatrix(testSet[1], predictions, [0, 1], True)
 
