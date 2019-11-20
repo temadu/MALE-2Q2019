@@ -2,7 +2,10 @@ import os
 import nltk
 import re
 import numpy as np
-
+import copy
+import scipy.cluster.hierarchy as hc
+import matplotlib.pyplot as plt
+from scipy.spatial.distance import cdist
 
 # Cantidad de Conjunciones subordinantes: En las oraciones con conjunciones
 # subordinantes, existe una oraci´on principal y una oraci´on secundaria que es introducida por la conjunci´on subordinante y que depende de la principal.
@@ -116,87 +119,92 @@ def getTextVariables(text):
     return attributes
 
 
-def calcProximityMatrix(data): #data es lista de clusters
-    mat = np.zeros([len(data), len(data)], dtype=float)
-    for i, x in enumerate(data, start=0):
-        for j, y in enumerate(data, start=0):
-            mat[i][j] = np.linalg.norm(np.array(x.centroid) - np.array(y.centroid))
-    return mat
+def calcMinDistClusters(clusters, method=0): #data es lista de clusters
+    min = 999
+    coords = [-1, -1]
+    for i in range(len(clusters)):
+        for j in range(i+1, len(clusters)):
+            x = clusters[i]
+            y = clusters[j]
+            dist = np.linalg.norm(np.array(x.centroid) - np.array(y.centroid))
+            sumx = 0
+            for k, w in enumerate(x.centroid, start=0):
+                sumx += (x.centroid[k] - y.centroid[k]) ** 2
+            dist = np.sqrt(sumx)
+            # print(dist)
+            qc=cdist(x.data, y.data)
+            if method == 0:
+                dist = np.mean(cdist(x.data, y.data)),
+            elif method == 1:
+                dist = np.amin(cdist(x.data, y.data)),
+            elif method == 2:
+                dist = np.amax(cdist(x.data, y.data)),
+            elif method == 3:
+                dist = cdist([x.centroid], [y.centroid]),
+
+            if dist[0] < min and dist[0] != 0:
+                min = dist[0]
+                if i > j:
+                    coords = [i, j]
+                else:
+                    coords = [j, i]
+    return min, coords
 
 
-def findMinCoords(matrix):
-    min = 1
-    minCoords = [-1, -1]
-    for i, x in enumerate(matrix):
-        for j, y in enumerate(matrix):
-            if matrix[i][j] < min and matrix[i][j] != 0:
-                min = matrix[i][j]
-                minCoords = [i, j]
+def main():
+    method = 0
+    data = []
+    staticData = []
+    for filename in os.listdir('./data/'):
+        if filename.endswith(".txt"):
+            with open(os.path.join('./data/', filename), "r", encoding='ansi', errors='replace') as textFile:
+                print(filename)
+                text = textFile.read()
+                variabs = getTextVariables(text)
+                data.append(variabs)
+                staticData.append(variabs)
 
-    return minCoords, min
+    print(data)
+    test = Cluster(0, [1], [[1,1,2,1,3,1,1,2,1]], 0)
+    clusters = [Cluster(i, [i], [x], 0) for i, x in enumerate(data)]
+    history = [clusters]
+    index = len(clusters)
+    claux = copy.deepcopy(clusters)
+    dendo = []
+    while len(claux) > 1:
+        min, coords = calcMinDistClusters(claux, method)
 
+        newCluster = Cluster(index, claux[coords[0]].members + claux[coords[1]].members, claux[coords[0]].data + claux[coords[1]].data, min)
+        index += 1
+        dendo.append([claux[coords[0]].index, claux[coords[1]].index, min, len(newCluster.members)])
+        claux.pop(coords[0])
+        claux.pop(coords[1])
+        claux.append(newCluster)
+        clusters.append(newCluster)
 
-def calcClusterCentroid(elems):
-    return np.average(elems, axis=0)
+    print([x.distance for x in clusters])
+    dendo = np.asarray(dendo, dtype=float)
+    plt.figure()
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('index')
+    plt.ylabel('distance')
 
-data = []
-staticData = []
-for filename in os.listdir('./data/'):
-    if filename.endswith(".txt"):
-        with open(os.path.join('./data/', filename), "r", encoding='ansi', errors='replace') as textFile:
-            print(filename)
-            text = textFile.read()
-            variabs = getTextVariables(text)
-            data.append(variabs)
-            staticData.append(variabs)
+    hc.dendrogram(dendo)
+    plt.show()
 
-print(data)
-historyDists = []
-historyClusters = []
-historyCoords = []
-dists = calcProximityMatrix(data)
-clusters = list(range(0, len(data)))
-historyClusters.append(clusters)
-mc, m = findMinCoords(dists)
-historyDists.append(m)
-historyCoords.append(mc)
-print(mc) #20, 22 la primera
-
-for x in clusters:
-    if x == clusters[mc[0]] or x == clusters[mc[1]]:
-        clusters[x] = clusters[mc[0]]
-
-auxClusters = set(clusters)
-data = []
-realIndices = []
-for x in auxClusters:
-    elems = []
-    for i, y in enumerate(clusters):
-        if x == y:
-            elems.append(np.array(staticData[i]))
-    centroid = calcClusterCentroid(np.asarray(elems))
-    data.append(centroid)
-    realIndices.append(x)
-
-
-
-
-
-# [1, 2, 1, 4]
-# [1, 2, 4]
 
 class Cluster:
-    def __init__(self, index, members, membersData):
+    def __init__(self, index, members, membersData, distance):
         self.index = index
         self.members = members
         self.data = membersData
         self.centroid = np.average(membersData, axis=0)
-
+        self.distance = distance
 
     # def getDistance(self, otherCluster):
 
 
-
+main()
 
 
 
