@@ -185,6 +185,7 @@ def multipleLogisticRegression(xs, y):
 
 
 def logisticRegressionInclusive(trainSet=[], testSet=[]):
+    print("LOGISTIC REGRESSION INCLUSIVE")
     xs = []
     y = []
     for i in range(len(trainSet[0])):
@@ -227,11 +228,12 @@ def logisticRegressionInclusive(trainSet=[], testSet=[]):
     # print(model.classes_)
     # print(np.array([[10,1,190]]).shape)
     # p = model.predict(np.array([[10, 1, 190]]))
-    print(p)
+    print('sano: %.3f%%, enfermo: %.3f%%' % (p[0][0]*100, p[0][1]*100))
     print()
 
 
 def logisticRegressionExclusive(trainSet=[], testSet=[]):
+    print("LOGISTIC REGRESSION EXCLUSIVE")
     xs = []
     y = []
     for i in range(len(trainSet[0])):
@@ -272,13 +274,17 @@ def logisticRegressionExclusive(trainSet=[], testSet=[]):
                              [0, 1], printit=True)
 
     p = model.predict_proba(np.array([[60, 2, 199, 0]]))
-    print("Man: " + repr(p))
+    print("Man: " + repr('sano: %.3f%%, enfermo: %.3f%%' %
+                         (p[0][0]*100, p[0][1]*100)))
+    print()
     p = model.predict_proba(np.array([[60, 2, 199, 1]]))
-    print("Woman: " + repr(p))
+    print("Woman: " + repr('sano: %.3f%%, enfermo: %.3f%%' %
+                           (p[0][0]*100, p[0][1]*100)))
     print()
 
 
 def KNNInclusive(trainSet=[], testSet=[]):
+    print("K-NN INCLUSIVE")
     xs = []
     y = []
     for i in range(len(trainSet[0])):
@@ -286,7 +292,7 @@ def KNNInclusive(trainSet=[], testSet=[]):
         y.append(trainSet[4][i])
     xs = np.array(xs)
     y = np.array(y)
-    model = neighbors.KNeighborsClassifier(n_neighbors=5).fit(xs, y)
+    model = neighbors.KNeighborsClassifier(n_neighbors=10).fit(xs, y)
 
     x2s = []
     y2 = []
@@ -314,11 +320,12 @@ def KNNInclusive(trainSet=[], testSet=[]):
     # print(model.classes_)
     # print(np.array([[10,1,190]]).shape)
     # p = model.predict(np.array([[10, 1, 190]]))
-    print(p)
+    print('sano: %.3f%%, enfermo: %.3f%%' % (p[0][0]*100, p[0][1]*100))
     print()
 
 
 def KNNExclusive(trainSet=[], testSet=[]):
+    print("K-NN EXCLUSIVE")
     xs = []
     y = []
     for i in range(len(trainSet[0])):
@@ -352,9 +359,11 @@ def KNNExclusive(trainSet=[], testSet=[]):
                              [0, 1], printit=True)
 
     p = model.predict_proba(np.array([[60, 2, 199, 0]]))
-    print("Man: " + repr(p))
+    print("Man: " + repr('sano: %.3f%%, enfermo: %.3f%%' %
+                         (p[0][0]*100, p[0][1]*100)))
     p = model.predict_proba(np.array([[60, 2, 199, 1]]))
-    print("Woman: " + repr(p))
+    print("Woman: " + repr('sano: %.3f%%, enfermo: %.3f%%' %
+                          (p[0][0]*100, p[0][1]*100)))
     print()
 
 
@@ -414,6 +423,8 @@ def KMeansInclusive(dataset=[]):
         xs.append([dataset[0][i], dataset[1][i], dataset[2][i]])
     xs = np.array(xs)
     km = KMeans(k=2)
+    print("shape")
+    print(xs.shape)
     km.fit(xs)
     print(km.centroids)
     pred = [km.pred(x) for x in xs]
@@ -425,7 +436,7 @@ def KMeansInclusive(dataset=[]):
     print()
 
 
-def KMeansInclusive2(dataset=[]):
+def KMeansInclusiveLibrary(dataset=[]):
     xs = []
     for i in range(len(dataset[0])):
         xs.append([dataset[0][i], dataset[1][i], dataset[2][i]])
@@ -446,7 +457,7 @@ if __name__ == "__main__":
 
     # logisticRegressionInclusive(trainSet, testSet)
     # logisticRegressionExclusive(trainSet, testSet)
-    # KNNInclusive(trainSet, testSet)
-    # KNNExclusive(trainSet, testSet)
-    KMeansInclusive(dataset)
-    # KMeansInclusive2(dataset)
+    KNNInclusive(trainSet, testSet)
+    KNNExclusive(trainSet, testSet)
+    # KMeansInclusive(dataset)
+    # KMeansInclusiveLibrary(dataset)
