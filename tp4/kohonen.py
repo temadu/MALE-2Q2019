@@ -18,7 +18,7 @@ class KohonenSOM:
     # radius decay parameter
     self.radiusDecay = self.totalIterations / np.log(self.neighbourhoodRadius)
 
-  def getBMU(self, t, net, m):
+  def getBMU(self, t, m):
     """
         Find the best matching unit for a given vector, t
         Returns: bmu and bmuIndex is the index of this vector in the SOM
@@ -27,16 +27,16 @@ class KohonenSOM:
     min_dist = np.iinfo(np.int).max
     
     # calculate the distance between each neuron and the input
-    for x in range(net.shape[0]):
-        for y in range(net.shape[1]):
-            w = net[x, y, :].reshape(m, 1)
+    for x in range(self.net.shape[0]):
+        for y in range(self.net.shape[1]):
+            w = self.net[x, y, :].reshape(m, 1)
             sq_dist = np.sum((w - t) ** 2)
             sq_dist = np.sqrt(sq_dist)
             if sq_dist < min_dist:
                 min_dist = sq_dist # dist
                 bmuIndex = np.array([x, y]) # id
     
-    bmu = net[bmuIndex[0], bmuIndex[1], :].reshape(m, 1)
+    bmu = self.net[bmuIndex[0], bmuIndex[1], :].reshape(m, 1)
     return (bmu, bmuIndex)
 
   def decayRadius(self, i):
@@ -58,14 +58,14 @@ class KohonenSOM:
         data = data / colMaxes[np.newaxis, :]
       else:
         data = data / data.max()
-    net = np.random.random((self.network_dimensions[0], self.network_dimensions[1], m))
+    self.net = np.random.random((self.network_dimensions[0], self.network_dimensions[1], m))
 
     for i in range(self.totalIterations):
       # select a training example at random
       t = data[:, np.random.randint(0, n)].reshape(np.array([m, 1]))
 
       # find its Best Matching Unit
-      bmu, bmuIndex = self.getBMU(t, net, m)
+      bmu, bmuIndex = self.getBMU(t, m)
 
       # decay the SOM parameters
       r = self.decayRadius(i)
@@ -73,9 +73,9 @@ class KohonenSOM:
 
       # update weight vector to move closer to input
       # and move its neighbours in 2-D vector space closer
-      for x in range(net.shape[0]):
-        for y in range(net.shape[1]):
-          w = net[x, y, :].reshape(m, 1)
+      for x in range(self.net.shape[0]):
+        for y in range(self.net.shape[1]):
+          w = self.net[x, y, :].reshape(m, 1)
           w_dist = np.sum((np.array([x, y]) - bmuIndex) ** 2)
           w_dist = np.sqrt(w_dist)
 
@@ -86,15 +86,15 @@ class KohonenSOM:
             # new w = old w + (learning rate * influence * delta)
             # where delta = input vector (t) - old w
             newW = w + (l * influence * (t - w))
-            net[x, y, :] = newW.reshape(1, m)
+            self.net[x, y, :] = newW.reshape(1, m)
 
-    self.net = net
 totalIterations = 10000
 raw_data = np.random.randint(0, 255, (3, 100))
 ksom = KohonenSOM(normalizeData=False, xDimentions=5, yDimentions=5, totalIterations=totalIterations)
 ksom.fit(raw_data)
 print(ksom.net)
 print(ksom.net.shape)
+print(ksom.getBMU(np.array([[128], [128], [128]]), 3))
 # fig = plt.figure()
 
 # ax = fig.add_subplot(111, aspect='equal')
