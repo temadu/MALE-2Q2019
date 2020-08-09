@@ -62,7 +62,8 @@ def calculateConfusionMatrix(testValues, predictions, posibleValues):
             fp += 1
         if predictions[i] != 1 and testValues[i] == 1:
             fn += 1
-        confusionMatrix[allClasses[testValues[i]]][allClasses[predictions[i]]] += 1
+        confusionMatrix[allClasses[predictions[i]]
+                        ][allClasses[testValues[i]]] += 1
     print("CONFUSION MATRIX")
     print(pd.DataFrame(confusionMatrix, columns=posibleValues, index=posibleValues))
     print()

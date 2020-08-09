@@ -14,14 +14,38 @@ def loadDataset(filename, dataset=[]):
   with open(filename, encoding="utf8") as csvfile:
     reader = csv.reader(csvfile, delimiter=";")
     first = True
+    dataset = []
+    removed2 = 0
+    removed4 = 0
+    maxAge = 0
+    maxBadDays = 0
+    maxCholesterol = 0
     for row in reader:
       if first:
         first = False
         continue
+      if(row[2] == ""):
+          removed2 += 1
+          continue
+      if(row[4] == ""):
+        removed4 += 1
+        continue
+      if(float(row[0]) > maxAge):
+          maxAge = float(row[0])
+      if(float(row[1]) > maxBadDays):
+        maxBadDays = float(row[1])
+      if(float(row[2]) > maxCholesterol):
+        maxCholesterol = float(row[2])
       # print(row)
       dataset[0].append(float(row[0]))
       dataset[1].append(float(row[1]))
       dataset[2].append(float(row[2]))
+      dataset[2].append(int(row[3]))
+      dataset[2].append(float(row[4]))
+      
+    print("max age: " + str(maxAge))
+    print("max days: " + str(maxBadDays))
+    print("max cholesterol: " + str(maxCholesterol))
 
 
 def simpleLinearRegression(x, y):

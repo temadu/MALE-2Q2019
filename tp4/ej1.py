@@ -146,11 +146,11 @@ def loadDataset(filename, dataset=[], normalize=True):
         # print("max age: " + str(maxAge))
         # print("max days: " + str(maxBadDays))
         # print("max cholesterol: " + str(maxCholesterol))
-        if(normalize):
-          for i in range(len(dataset[0])):
-              dataset[0][i] = dataset[0][i]/maxAge
-              dataset[1][i] = dataset[1][i]/maxBadDays
-              dataset[2][i] = dataset[2][i]/maxCholesterol
+        # if(normalize):
+        #   for i in range(len(dataset[0])):
+        #       dataset[0][i] = dataset[0][i]/maxAge
+        #       dataset[1][i] = dataset[1][i]/maxBadDays
+        #       dataset[2][i] = dataset[2][i]/maxCholesterol
         return dataset
 
 
@@ -457,7 +457,7 @@ if __name__ == "__main__":
 
     # logisticRegressionInclusive(trainSet, testSet)
     # logisticRegressionExclusive(trainSet, testSet)
-    KNNInclusive(trainSet, testSet)
-    KNNExclusive(trainSet, testSet)
-    # KMeansInclusive(dataset)
+    # KNNInclusive(trainSet, testSet)
+    # KNNExclusive(trainSet, testSet)
+    KMeansInclusive(dataset)
     # KMeansInclusiveLibrary(dataset)

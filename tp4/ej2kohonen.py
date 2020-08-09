@@ -153,14 +153,14 @@ def getTextVariables(text):
     mente = [w for w in wordsFull if re.search('.mente$', w)]
     attributes.append(len(mente) / freq.N())
 
-# • Conjunciones subordinantes causales:                    porque, pues, ya que, puesto que, a causa de, debido a.
+  # • Conjunciones subordinantes causales:                    porque, pues, ya que, puesto que, a causa de, debido a.
     count = 0
     for m in re.finditer("(ya que|puesto que|a causa de|debido a)", text):
         count += 1
 
     arr = [m for m in wordsFull if re.search("^(porque|pues)$", m)]
     attributes.append((len(arr) + count) / freq.N())
-# • Conjunciones subordinantes consecutivas o ilativas:     luego, conque, as´ı que.
+  # • Conjunciones subordinantes consecutivas o ilativas:     luego, conque, as´ı que.
     count = 0
     for m in re.finditer("(así que)", text):
         count += 1
@@ -168,24 +168,24 @@ def getTextVariables(text):
     arr = [m for m in wordsFull if re.search("^(luego|conque)$", m)]
     attributes.append((len(arr) + count) / freq.N())
 
-# • Conjunciones subordinantes condicionales:               si.
+  # • Conjunciones subordinantes condicionales:               si.
     count = 0
     arr = [m for m in wordsFull if re.search("^(si)$", m)]
     attributes.append((len(arr) + count) / freq.N())
 
-# • Conjunciones subordinantes finales:                     para que, a fin de que.
+  # • Conjunciones subordinantes finales:                     para que, a fin de que.
     count = 0
     for m in re.finditer("(para que|a fin de que)", text):
         count += 1
     attributes.append((len(arr) + count) / freq.N())
 
 
-# • Conjunciones subordinantes comparativas:                como, que.
+  # • Conjunciones subordinantes comparativas:                como, que.
     count = 0
     arr = [m for m in wordsFull if re.search("^(como|que)$", m)]
     attributes.append((len(arr) + count) / freq.N())
 
-# • Conjunciones subordinantes concesivas:                  aunque, aun cuando, si bien.
+  # • Conjunciones subordinantes concesivas:                  aunque, aun cuando, si bien.
     count = 0
     for m in re.finditer("(aun cuando|si bien)", text):
         count += 1
@@ -193,12 +193,12 @@ def getTextVariables(text):
     arr = [m for m in wordsFull if re.search("^(aunque)$", m)]
     attributes.append((len(arr) + count) / freq.N())
 
-# • Conjunciones subordinantes completivas:                 que, si
+  # • Conjunciones subordinantes completivas:                 que, si
     count = 0
     arr = [m for m in wordsFull if re.search("^(que|si)$", m)]
     attributes.append((len(arr) + count) / freq.N())
 
-# • Conjunciones coordinantes:  ni, y, o, o bien, pero aunque, no obstante, sin embargo, sino, por el contrario.
+  # • Conjunciones coordinantes:  ni, y, o, o bien, pero aunque, no obstante, sin embargo, sino, por el contrario.
     count = 0
     for m in re.finditer("(o bien|pero aunque|no obstante| sin embargo| por el contrario)", text):
         count += 1
@@ -207,38 +207,6 @@ def getTextVariables(text):
     attributes.append((len(arr) + count) / freq.N())
 
     return attributes
-
-
-def calcMinDistClusters(clusters, method=0):  # data es lista de clusters
-    min = 999
-    coords = [-1, -1]
-    for i in range(len(clusters)):
-        for j in range(i+1, len(clusters)):
-            x = clusters[i]
-            y = clusters[j]
-            dist = np.linalg.norm(np.array(x.centroid) - np.array(y.centroid))
-            sumx = 0
-            for k, w in enumerate(x.centroid, start=0):
-                sumx += (x.centroid[k] - y.centroid[k]) ** 2
-            dist = np.sqrt(sumx)
-            # print(dist)
-            qc = cdist(x.data, y.data)
-            if method == 0:
-                dist = np.mean(cdist(x.data, y.data)),
-            elif method == 1:
-                dist = np.amin(cdist(x.data, y.data)),
-            elif method == 2:
-                dist = np.amax(cdist(x.data, y.data)),
-            elif method == 3:
-                dist = cdist([x.centroid], [y.centroid]),
-
-            if dist[0] < min and dist[0] != 0:
-                min = dist[0]
-                if i > j:
-                    coords = [i, j]
-                else:
-                    coords = [j, i]
-    return min, coords
 
 
 def main():
